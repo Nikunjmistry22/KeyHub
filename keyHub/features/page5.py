@@ -1,7 +1,7 @@
-import tkinter as tk
+import tkinter as tk,string
 from tkinter import ttk
 from keyHub_test.database.db_connector import SQLiteConnector
-
+from tkinter import messagebox
 background_color = '#1E1E1E'
 nav_bar_color = '#2E2E2E'
 label_color = '#FFFFFF'
@@ -20,6 +20,8 @@ class Page5:
 
         self.canvas1 = tk.Canvas(parent_frame, width=400, height=400)
         self.canvas1.pack()
+        self.description=""
+        self.existing_record = False
 
         self.i = 1
         self.text_key_label = tk.Label(self.canvas1, text=f"Customize Your Chrome Windows ({self.i})", font=("Arial", 12))
@@ -40,7 +42,7 @@ class Page5:
 
         self.db_connector = SQLiteConnector("KeyHub.db")
         self.table_name = "CustomizeKeys"
-        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null"
+        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null unique"
 
         self.db_connector.create_table(self.table_name, self.columns)
 
@@ -86,7 +88,7 @@ class Page5:
         self.additional_canvas = tk.Canvas(self.parent_frame, width=300, height=300, bg="lightblue")
         self.additional_canvas.place(relx=0.5, rely=0.5, anchor="center")
 
-        text_key_label = tk.Label(self.additional_canvas, text="Text Customize Key", font=("Arial", 12))
+        text_key_label = tk.Label(self.additional_canvas, text="Chrome Keys", font=("Arial", 12))
         text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         cross_icon_label = tk.Label(self.additional_canvas, text="x", font=("Arial", 12))
@@ -94,11 +96,9 @@ class Page5:
 
         cross_icon_label.bind("<Button-1>", lambda event: self.close_additional_box(self.additional_canvas))
 
-        label_text = tk.Label(self.additional_canvas, text="Description", font=("Arial", 12))
-        label_text.place(relx=0.3, rely=0.35, anchor="center")
-
-        text_input = tk.Entry(self.additional_canvas, font=("Arial", 12), width=15)
-        text_input.place(relx=0.7, rely=0.35, anchor="center")
+        open_large_text_button = tk.Button(self.additional_canvas, text="Multiple Link with comma", font=("Arial", 12),
+                                           command=lambda: self.open_large_text_widget())
+        open_large_text_button.place(relx=0.5, rely=0.35, anchor="center")
 
         # Dropdown for modifier keys (Ctrl, Alt, Shift)
         modifier_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_modifier,
@@ -108,8 +108,11 @@ class Page5:
         modifier_label.place(relx=0.3, rely=0.5, anchor="center")
 
         # Dropdown for regular keys (alphabet, digits)
+        alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)),
+                                   key=lambda x: ord(x))
+
         key_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_key,
-                                    values=['A', 'B', 'C', '1', '2', '3'], state='readonly')
+                                    values=alphanumeric_keys, state='readonly')
         key_dropdown.place(relx=0.7, rely=0.65, anchor="center")
         key_label = tk.Label(self.additional_canvas, text="Regular Key", font=("Arial", 12))
         key_label.place(relx=0.3, rely=0.65, anchor="center")
@@ -118,24 +121,58 @@ class Page5:
         clear_btn.place(relx=0.4, rely=0.9, anchor="center")
 
         submit_btn = tk.Button(self.additional_canvas, text="Submit", font=("Arial", 12),
-                               command=lambda: self.submit_info(text_input.get(),
+                               command=lambda: self.submit_info(self.description,
                                                                f"{self.selected_modifier.get()}+{self.selected_key.get()}"))
         submit_btn.place(relx=0.6, rely=0.9, anchor="center")
 
-    def submit_info(self, description_text, shortcut_text):
-        # Store the information in the dictionary
-        self.counters[self.i] = {'description_text': description_text, 'shortcut_text': shortcut_text}
+    def open_large_text_widget(self):
+        # Open a canvas with a large text widget
+        large_text_canvas = tk.Canvas(self.parent_frame, width=40, height=20, bg="lightgreen")
+        large_text_canvas.place(relx=0.5, rely=0.5, anchor="center")
 
-        if self.existing_record:
-            # Key_id exists, update the existing record
-            update_query = f"UPDATE {self.table_name} SET category=?, description=?, shortcut_key=? WHERE key_id=? and category='Chrome'"
-            update_params = ('Text', description_text, shortcut_text, self.i)
-            self.db_connector.execute_query(update_query, update_params)
-        else:
-            # Key_id doesn't exist, insert a new record
-            insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
-            insert_params = (self.i, 'Chrome', description_text, shortcut_text)
-            self.db_connector.execute_query(insert_query, insert_params)
+        # Create a large text widget
+        self.large_text_widget = tk.Text(large_text_canvas, wrap=tk.WORD, width=40, height=20)
+        self.large_text_widget.pack()
+
+        # Create a button to destroy the large text widget canvas
+        destroy_large_text_button = tk.Button(large_text_canvas, text="Ok", font=("Arial", 12),
+                                              command=lambda: self.destroy_large_text_canvas(large_text_canvas))
+        destroy_large_text_button.place(relx=0.5, rely=0.95, anchor="center")
+
+    def destroy_large_text_canvas(self, canvas):
+        # Destroy the canvas containing the large text widget
+        self.description=self.large_text_widget.get("1.0", tk.END).strip().split('\n')[0]
+        canvas.destroy()
+
+    def submit_info(self, description_text, shortcut_text):
+        try:
+            # Check if the shortcut_key already exists
+            existing_record = self.db_connector.fetch_data(
+                f"SELECT * FROM {self.table_name} WHERE shortcut_key=?", (shortcut_text,))
+
+            if existing_record:
+                # Shortcut_key already exists, show a messagebox
+                tk.messagebox.showinfo("Shortcut Key Exists", "Shortcut Key already exists. Choose a different one.")
+            else:
+                # Shortcut_key doesn't exist, proceed with update or insert
+                if self.existing_record:
+                    # Key_id exists, update the existing record
+                    update_query = f"UPDATE {self.table_name} SET description=?, shortcut_key=? WHERE key_id=? and category=? "
+                    update_params = (description_text, shortcut_text, self.i,'Chrome')
+                    self.db_connector.execute_query(update_query, update_params)
+                else:
+                    # Key_id doesn't exist, insert a new record
+                    insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
+                    insert_params = (self.i, 'Chrome', description_text, shortcut_text)
+                    self.db_connector.execute_query(insert_query, insert_params)
+
+                # If no exception is raised, show a success message
+                tk.messagebox.showinfo("Success", "Record successfully inserted/updated.")
+
+        except Exception as e:
+            # If an exception occurs, show an error message
+            error_message = f"An error occurred: {str(e)}"
+            tk.messagebox.showerror("Error", error_message)
 
     def close_additional_box(self, additional_canvas):
         additional_canvas.destroy()
@@ -146,10 +183,11 @@ class Page5:
         # Create the view_canvas
         self.view_canvas1 = tk.Canvas(self.parent_frame, width=900, height=700)
         self.view_canvas1.place(relx=0.5, rely=0.5, anchor="center")
-        query = f"SELECT * FROM {self.table_name} where category='Chrome';"
+        query = f"SELECT * FROM {self.table_name} where category='Chrome' order by key_id;"
         results = self.db_connector.fetch_data(query)
 
         text_widget = tk.Text(self.view_canvas1, wrap=tk.WORD, width=80, height=20)
+
         text_widget.pack()
 
         for row in results:

@@ -1,5 +1,6 @@
-import tkinter as tk
+import tkinter as tk,string
 from tkinter import ttk
+from tkinter import messagebox
 from keyHub_test.database.db_connector import SQLiteConnector
 
 background_color = '#1E1E1E'
@@ -102,6 +103,9 @@ class Page1:
         text_input.place(relx=0.7, rely=0.35, anchor="center")
 
         # Dropdown for modifier keys (Ctrl, Alt, Shift)
+        alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)),
+                                   key=lambda x: ord(x))
+
         modifier_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_modifier,
                                          values=['Ctrl', 'Alt', 'Shift'], state='readonly')
         modifier_dropdown.place(relx=0.7, rely=0.5, anchor="center")
@@ -110,7 +114,7 @@ class Page1:
 
         # Dropdown for regular keys (alphabet, digits)
         key_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_key,
-                                    values=['A', 'B', 'C', '1', '2', '3'], state='readonly')
+                                    values=alphanumeric_keys, state='readonly')
         key_dropdown.place(relx=0.7, rely=0.65, anchor="center")
         key_label = tk.Label(self.additional_canvas, text="Regular Key", font=("Arial", 12))
         key_label.place(relx=0.3, rely=0.65, anchor="center")
@@ -124,19 +128,34 @@ class Page1:
         submit_btn.place(relx=0.6, rely=0.9, anchor="center")
 
     def submit_info(self, description_text, shortcut_text):
-        # Store the information in the dictionary
-        self.counters[self.i] = {'description_text': description_text, 'shortcut_text': shortcut_text}
+        try:
+            # Check if the shortcut_key already exists
+            existing_record = self.db_connector.fetch_data(
+                f"SELECT * FROM {self.table_name} WHERE shortcut_key=?", (shortcut_text,))
 
-        if self.existing_record:
-            # Key_id exists, update the existing record
-            update_query = f"UPDATE {self.table_name} SET category=?, description=?, shortcut_key=? WHERE key_id=? and category='Text'"
-            update_params = ('Text', description_text, shortcut_text, self.i)
-            self.db_connector.execute_query(update_query, update_params)
-        else:
-            # Key_id doesn't exist, insert a new record
-            insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
-            insert_params = (self.i, 'Text', description_text, shortcut_text)
-            self.db_connector.execute_query(insert_query, insert_params)
+            if existing_record:
+                # Shortcut_key already exists, show a messagebox
+                tk.messagebox.showinfo("Shortcut Key Exists", "Shortcut Key already exists. Choose a different one.")
+            else:
+                # Shortcut_key doesn't exist, proceed with update or insert
+                if self.existing_record:
+                    # Key_id exists, update the existing record
+                    update_query = f"UPDATE {self.table_name} SET category=?, description=?, shortcut_key=? WHERE key_id=?"
+                    update_params = ('Text', description_text, shortcut_text, self.i)
+                    self.db_connector.execute_query(update_query, update_params)
+                else:
+                    # Key_id doesn't exist, insert a new record
+                    insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
+                    insert_params = (self.i, 'Text', description_text, shortcut_text)
+                    self.db_connector.execute_query(insert_query, insert_params)
+
+                # If no exception is raised, show a success message
+                tk.messagebox.showinfo("Success", "Record successfully inserted/updated.")
+
+        except Exception as e:
+            # If an exception occurs, show an error message
+            error_message = f"An error occurred: {str(e)}"
+            tk.messagebox.showerror("Error", error_message)
 
     def close_additional_box(self, additional_canvas):
         additional_canvas.destroy()
@@ -157,6 +176,7 @@ class Page1:
             text_widget.insert(tk.END, f"Counter Value: {row[1]}\n")
             text_widget.insert(tk.END, f"Description: {row[3]}\n")
             text_widget.insert(tk.END, f"Shortcut_keys: {row[4]}\n\n")
+
 
         self.add_update_button1 = tk.Button(self.parent_frame, text="Add/Update", font=("Helvetica", 25),
                                            bg=button_color, fg=label_color, command=self.back_to_main_canvas)

@@ -6,17 +6,15 @@ from features.page4 import Page4
 from features.page5 import Page5
 from features.page6 import Page6
 
-from tkinter import messagebox
-background_color = '#1E1E1E'  # Dark background
-nav_bar_color = '#2E2E2E'  # Slightly lighter navigation bar
-label_color = '#FFFFFF'  # White text color for labels
+background_color = '#1E1E1E'
+nav_bar_color = '#2E2E2E'
+label_color = '#FFFFFF'
 highlight_color = '#FF5722'
 button_color = '#3498db'
 
 class SimpleGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Tkinter GUI")
 
         # Set background color
         self.root.configure(bg=background_color)
@@ -88,7 +86,6 @@ class SimpleGUI:
             self.page5_instance.destroy()
         if hasattr(self, "page6_instance"):
             self.page6_instance.destroy()
-
         self.current_content.destroy()
 
         # Display new content based on the button clicked
@@ -100,13 +97,13 @@ class SimpleGUI:
         elif page_name == "All Files":
             # Add logic for other pages here
             self.page2_instance = Page2(self.content_frame)
-            self.current_content = self.page2_instance.label
+            self.current_content = self.page2_instance.canvas1
             self.getting_started_button.destroy()
             pass
         elif page_name == "All Folders":
             # Add logic for other pages here
             self.page3_instance = Page3(self.content_frame)
-            self.current_content = self.page3_instance.canvas3
+            self.current_content = self.page3_instance.canvas1
             self.getting_started_button.destroy()
             pass
 
@@ -154,5 +151,4 @@ if __name__ == "__main__":
     x_position = (screen_width - window_width) // 2
     y_position = (screen_height - window_height) // 2
     root.geometry(f"+{x_position}+{y_position}")
-
     root.mainloop()
