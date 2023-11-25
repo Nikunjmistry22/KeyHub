@@ -15,6 +15,7 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
 - **Intuitive User Interface:** KeyHub introduces a newly designed, modern, and user-friendly interface for a delightful user experience.
 - **Customization Options:** Tailor your shortcuts to fit your unique workflow, enhancing efficiency and convenience.
 - **Windows Notification:** If you want to view all the shortcuts, check the Windows Notification as it displays a limited number, typically the top 5-10, for each category due to space constraints.
+- **Logging for Actions:** Every successful shortcut key triggered is logged, capturing the corresponding actions performed for a comprehensive record of your interactions.
 ---
 
 
