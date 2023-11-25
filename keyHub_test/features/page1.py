@@ -1,19 +1,17 @@
-import tkinter as tk
+import tkinter as tk,string
 from tkinter import ttk
-from keyHub_test.database.db_connector import SQLiteConnector
-from tkinter import messagebox,filedialog
-import string
+from tkinter import messagebox
 background_color = '#1E1E1E'
 nav_bar_color = '#2E2E2E'
 label_color = '#FFFFFF'
 highlight_color = '#FF5722'
 button_color = '#3498db'
 
-class Page3:
+class Page1:
     def __init__(self, parent_frame):
         self.parent_frame = parent_frame
         self.counters = {}
-        self.title=tk.Label(parent_frame,text="Folder Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
+        self.title=tk.Label(parent_frame,text="Text Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
         self.title.place(relx=0.5,rely=0.05,anchor="center")
         self.view1 = tk.Button(parent_frame, text="View", font=("Helvetica", 25),
                               bg=button_color, fg=label_color, command=self.view_counters)
@@ -21,11 +19,10 @@ class Page3:
 
         self.canvas1 = tk.Canvas(parent_frame, width=400, height=400)
         self.canvas1.pack()
-        self.folder_path=""
         self.existing_record = False
 
         self.i = 1
-        self.text_key_label = tk.Label(self.canvas1, text=f"Customize Your Folders ({self.i})", font=("Arial", 12))
+        self.text_key_label = tk.Label(self.canvas1, text=f"Customize the text keys ({self.i})", font=("Arial", 12))
         self.text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         self.plus_icon_label = tk.Label(self.canvas1, text="+", font=("Arial", 12))
@@ -43,7 +40,7 @@ class Page3:
 
         self.db_connector = SQLiteConnector("KeyHub.db")
         self.table_name = "CustomizeKeys"
-        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null unique"
+        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null"
 
         self.db_connector.create_table(self.table_name, self.columns)
 
@@ -53,7 +50,7 @@ class Page3:
 
     def increment_counter(self):
         self.i += 1
-        self.text_key_label.config(text=f"Customize Your Folders ({self.i})")
+        self.text_key_label.config(text=f"Customize the text keys ({self.i})")
 
     def destroy(self):
         # Add any additional cleanup code here
@@ -70,11 +67,11 @@ class Page3:
     def decrement_counter(self):
         if self.i > 1:
             self.i -= 1
-            self.text_key_label.config(text=f"Customize Your Folders ({self.i})")
+            self.text_key_label.config(text=f"Customize the text keys ({self.i})")
 
     def open_additional_box(self):
         existing_record = self.db_connector.fetch_data(
-            f"SELECT * FROM {self.table_name} WHERE key_id=? and category='Folder'", (self.i,))
+            f"SELECT * FROM {self.table_name} WHERE key_id=? and category='Text'", (self.i,))
 
         if existing_record:
             self.existing_record=True
@@ -89,7 +86,7 @@ class Page3:
         self.additional_canvas = tk.Canvas(self.parent_frame, width=300, height=300, bg="lightblue")
         self.additional_canvas.place(relx=0.5, rely=0.5, anchor="center")
 
-        text_key_label = tk.Label(self.additional_canvas, text="Chrome Keys", font=("Arial", 12))
+        text_key_label = tk.Label(self.additional_canvas, text="Text Customize Key", font=("Arial", 12))
         text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         cross_icon_label = tk.Label(self.additional_canvas, text="x", font=("Arial", 12))
@@ -97,21 +94,24 @@ class Page3:
 
         cross_icon_label.bind("<Button-1>", lambda event: self.close_additional_box(self.additional_canvas))
 
-        Folder = tk.Button(self.additional_canvas, text="Folder", font=("Arial", 12),
-                                           command=lambda: self.folderPath())
-        Folder.place(relx=0.5, rely=0.35, anchor="center")
+        label_text = tk.Label(self.additional_canvas, text="Description", font=("Arial", 12))
+        label_text.place(relx=0.3, rely=0.35, anchor="center")
+
+        text_input = tk.Entry(self.additional_canvas, font=("Arial", 12), width=15)
+        text_input.place(relx=0.7, rely=0.35, anchor="center")
 
         # Dropdown for modifier keys (Ctrl, Alt, Shift)
+        alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)),
+                                   key=lambda x: ord(x))
+        modifier_value=['Ctrl', 'Alt', 'Shift']+alphanumeric_keys
+
         modifier_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_modifier,
-                                         values=['Ctrl', 'Alt', 'Shift'], state='readonly')
+                                         values=modifier_value, state='readonly')
         modifier_dropdown.place(relx=0.7, rely=0.5, anchor="center")
         modifier_label = tk.Label(self.additional_canvas, text="Modifier Key", font=("Arial", 12))
         modifier_label.place(relx=0.3, rely=0.5, anchor="center")
 
         # Dropdown for regular keys (alphabet, digits)
-        alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)), key=lambda x: ord(x))
-
-        # print(alphanumeric_keys)
         key_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_key,
                                     values=alphanumeric_keys, state='readonly')
         key_dropdown.place(relx=0.7, rely=0.65, anchor="center")
@@ -122,15 +122,9 @@ class Page3:
         clear_btn.place(relx=0.4, rely=0.9, anchor="center")
 
         submit_btn = tk.Button(self.additional_canvas, text="Submit", font=("Arial", 12),
-                               command=lambda: self.submit_info(self.folder_path,
+                               command=lambda: self.submit_info(text_input.get(),
                                                                f"{self.selected_modifier.get()}+{self.selected_key.get()}"))
         submit_btn.place(relx=0.6, rely=0.9, anchor="center")
-
-    def folderPath(self):
-        # Open a canvas with a large text widget
-        self.folder_path=tk.filedialog.askdirectory(title="Select a Folder")
-        return self.folder_path
-
 
     def submit_info(self, description_text, shortcut_text):
         try:
@@ -145,20 +139,23 @@ class Page3:
                 # Shortcut_key doesn't exist, proceed with update or insert
                 if self.existing_record:
                     # Key_id exists, update the existing record
-                    update_query = f"UPDATE {self.table_name} SET description=?, shortcut_key=? WHERE key_id=? and category=? "
-                    update_params = (description_text, shortcut_text, self.i,'Folder')
+                    update_query = f"UPDATE {self.table_name} SET category=?, description=?, shortcut_key=? WHERE key_id=?"
+                    update_params = ('Text', description_text, shortcut_text, self.i)
                     self.db_connector.execute_query(update_query, update_params)
                 else:
                     # Key_id doesn't exist, insert a new record
                     insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
-                    insert_params = (self.i, 'Folder', description_text, shortcut_text)
+                    insert_params = (self.i, 'Text', description_text, shortcut_text)
                     self.db_connector.execute_query(insert_query, insert_params)
+
                 # If no exception is raised, show a success message
                 tk.messagebox.showinfo("Success", "Record successfully inserted/updated.")
+
         except Exception as e:
             # If an exception occurs, show an error message
             error_message = f"An error occurred: {str(e)}"
             tk.messagebox.showerror("Error", error_message)
+
     def close_additional_box(self, additional_canvas):
         additional_canvas.destroy()
 
@@ -168,17 +165,17 @@ class Page3:
         # Create the view_canvas
         self.view_canvas1 = tk.Canvas(self.parent_frame, width=900, height=700)
         self.view_canvas1.place(relx=0.5, rely=0.5, anchor="center")
-        query = f"SELECT * FROM {self.table_name} where category='Folder' order by key_id;"
+        query = f"SELECT * FROM {self.table_name} where category='Text';"
         results = self.db_connector.fetch_data(query)
 
         text_widget = tk.Text(self.view_canvas1, wrap=tk.WORD, width=80, height=20)
-
         text_widget.pack()
 
         for row in results:
             text_widget.insert(tk.END, f"Counter Value: {row[1]}\n")
             text_widget.insert(tk.END, f"Description: {row[3]}\n")
             text_widget.insert(tk.END, f"Shortcut_keys: {row[4]}\n\n")
+
 
         self.add_update_button1 = tk.Button(self.parent_frame, text="Add/Update", font=("Helvetica", 25),
                                            bg=button_color, fg=label_color, command=self.back_to_main_canvas)
@@ -195,7 +192,7 @@ class Page3:
         self.canvas1.place(relx=0.5, rely=0.5, anchor="center")
 
         self.i = 1
-        self.text_key_label = tk.Label(self.canvas1, text=f"Customize Your Chrome Windows ({self.i})", font=("Arial", 12))
+        self.text_key_label = tk.Label(self.canvas1, text=f"Customize the text keys ({self.i})", font=("Arial", 12))
         self.text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         self.plus_icon_label = tk.Label(self.canvas1, text="+", font=("Arial", 12))

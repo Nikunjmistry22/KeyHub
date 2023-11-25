@@ -1,19 +1,18 @@
 import tkinter as tk,string
 from tkinter import ttk
-from tkinter import messagebox
-from keyHub_test.database.db_connector import SQLiteConnector
-
+from tkinter import messagebox,filedialog
 background_color = '#1E1E1E'
 nav_bar_color = '#2E2E2E'
 label_color = '#FFFFFF'
 highlight_color = '#FF5722'
 button_color = '#3498db'
 
-class Page1:
+class Page2:
     def __init__(self, parent_frame):
+        from keyHub_test.database.db_connector import SQLiteConnector
         self.parent_frame = parent_frame
         self.counters = {}
-        self.title=tk.Label(parent_frame,text="Text Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
+        self.title=tk.Label(parent_frame,text="File Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
         self.title.place(relx=0.5,rely=0.05,anchor="center")
         self.view1 = tk.Button(parent_frame, text="View", font=("Helvetica", 25),
                               bg=button_color, fg=label_color, command=self.view_counters)
@@ -21,10 +20,11 @@ class Page1:
 
         self.canvas1 = tk.Canvas(parent_frame, width=400, height=400)
         self.canvas1.pack()
+        self.file_path=""
         self.existing_record = False
 
         self.i = 1
-        self.text_key_label = tk.Label(self.canvas1, text=f"Customize the text keys ({self.i})", font=("Arial", 12))
+        self.text_key_label = tk.Label(self.canvas1, text=f"Customize Your Files ({self.i})", font=("Arial", 12))
         self.text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         self.plus_icon_label = tk.Label(self.canvas1, text="+", font=("Arial", 12))
@@ -42,7 +42,7 @@ class Page1:
 
         self.db_connector = SQLiteConnector("KeyHub.db")
         self.table_name = "CustomizeKeys"
-        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null"
+        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null unique"
 
         self.db_connector.create_table(self.table_name, self.columns)
 
@@ -52,7 +52,7 @@ class Page1:
 
     def increment_counter(self):
         self.i += 1
-        self.text_key_label.config(text=f"Customize the text keys ({self.i})")
+        self.text_key_label.config(text=f"Customize Your Files ({self.i})")
 
     def destroy(self):
         # Add any additional cleanup code here
@@ -69,11 +69,11 @@ class Page1:
     def decrement_counter(self):
         if self.i > 1:
             self.i -= 1
-            self.text_key_label.config(text=f"Customize the text keys ({self.i})")
+            self.text_key_label.config(text=f"Customize Your Files ({self.i})")
 
     def open_additional_box(self):
         existing_record = self.db_connector.fetch_data(
-            f"SELECT * FROM {self.table_name} WHERE key_id=? and category='Text'", (self.i,))
+            f"SELECT * FROM {self.table_name} WHERE  key_id=? and category='File'", (self.i,))
 
         if existing_record:
             self.existing_record=True
@@ -88,7 +88,7 @@ class Page1:
         self.additional_canvas = tk.Canvas(self.parent_frame, width=300, height=300, bg="lightblue")
         self.additional_canvas.place(relx=0.5, rely=0.5, anchor="center")
 
-        text_key_label = tk.Label(self.additional_canvas, text="Text Customize Key", font=("Arial", 12))
+        text_key_label = tk.Label(self.additional_canvas, text="File Keys", font=("Arial", 12))
         text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         cross_icon_label = tk.Label(self.additional_canvas, text="x", font=("Arial", 12))
@@ -96,18 +96,16 @@ class Page1:
 
         cross_icon_label.bind("<Button-1>", lambda event: self.close_additional_box(self.additional_canvas))
 
-        label_text = tk.Label(self.additional_canvas, text="Description", font=("Arial", 12))
-        label_text.place(relx=0.3, rely=0.35, anchor="center")
-
-        text_input = tk.Entry(self.additional_canvas, font=("Arial", 12), width=15)
-        text_input.place(relx=0.7, rely=0.35, anchor="center")
+        File = tk.Button(self.additional_canvas, text="File", font=("Arial", 12),
+                                           command=lambda: self.filePath())
+        File.place(relx=0.5, rely=0.35, anchor="center")
 
         # Dropdown for modifier keys (Ctrl, Alt, Shift)
         alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)),
                                    key=lambda x: ord(x))
-
+        modifier_value=['Ctrl','Alt','Shift']+alphanumeric_keys
         modifier_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_modifier,
-                                         values=['Ctrl', 'Alt', 'Shift'], state='readonly')
+                                         values=modifier_value, state='readonly')
         modifier_dropdown.place(relx=0.7, rely=0.5, anchor="center")
         modifier_label = tk.Label(self.additional_canvas, text="Modifier Key", font=("Arial", 12))
         modifier_label.place(relx=0.3, rely=0.5, anchor="center")
@@ -123,13 +121,36 @@ class Page1:
         clear_btn.place(relx=0.4, rely=0.9, anchor="center")
 
         submit_btn = tk.Button(self.additional_canvas, text="Submit", font=("Arial", 12),
-                               command=lambda: self.submit_info(text_input.get(),
+                               command=lambda: self.submit_info(self.file_path,
                                                                f"{self.selected_modifier.get()}+{self.selected_key.get()}"))
         submit_btn.place(relx=0.6, rely=0.9, anchor="center")
 
+    def filePath(self):
+        # Open a canvas with a large text widget
+        self.file_path=tk.filedialog.askopenfiles(title="Select a File")
+        # print(self.file_path)
+        self.file_path_comma=""
+        for file in self.file_path[:-1]:
+            self.file_path_comma+=file.name+','
+        self.file_path_comma+=self.file_path[-1].name
+        self.file_path=self.file_path_comma
+        return self.file_path
+
     def submit_info(self, description_text, shortcut_text):
         try:
+            shortcut_keys = [
+                'Ctrl+C', 'Ctrl+X', 'Ctrl+V', 'Ctrl+Z', 'Ctrl+Y', 'Ctrl+A',
+                'Ctrl+F', 'Ctrl+S', 'Ctrl+N', 'Ctrl+O', 'Ctrl+P', 'Ctrl+W',
+                'Ctrl+Q', 'Ctrl+E', 'Ctrl+Shift+N', 'Ctrl+Shift+Esc', 'Alt+Tab',
+                'Alt+F4', 'Windows key+D', 'Windows key+L', 'Windows key+E', 'Windows key+R',
+                'Shift+C','Shift+M','Shift+W','Shift+F'
+            ]
+
+
             # Check if the shortcut_key already exists
+            if shortcut_text in shortcut_keys:
+                tk.messagebox.showinfo("Windows Default Shortcut Key","The ShortCut key u selected is a default Windows Shortcut Key.")
+                return
             existing_record = self.db_connector.fetch_data(
                 f"SELECT * FROM {self.table_name} WHERE shortcut_key=?", (shortcut_text,))
 
@@ -140,18 +161,16 @@ class Page1:
                 # Shortcut_key doesn't exist, proceed with update or insert
                 if self.existing_record:
                     # Key_id exists, update the existing record
-                    update_query = f"UPDATE {self.table_name} SET category=?, description=?, shortcut_key=? WHERE key_id=?"
-                    update_params = ('Text', description_text, shortcut_text, self.i)
+                    update_query = f"UPDATE {self.table_name} SET description=?, shortcut_key=? WHERE key_id=? and category=? "
+                    update_params = (description_text, shortcut_text, self.i,'File')
                     self.db_connector.execute_query(update_query, update_params)
                 else:
                     # Key_id doesn't exist, insert a new record
                     insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
-                    insert_params = (self.i, 'Text', description_text, shortcut_text)
+                    insert_params = (self.i, 'File', description_text, shortcut_text)
                     self.db_connector.execute_query(insert_query, insert_params)
-
                 # If no exception is raised, show a success message
                 tk.messagebox.showinfo("Success", "Record successfully inserted/updated.")
-
         except Exception as e:
             # If an exception occurs, show an error message
             error_message = f"An error occurred: {str(e)}"
@@ -166,17 +185,17 @@ class Page1:
         # Create the view_canvas
         self.view_canvas1 = tk.Canvas(self.parent_frame, width=900, height=700)
         self.view_canvas1.place(relx=0.5, rely=0.5, anchor="center")
-        query = f"SELECT * FROM {self.table_name} where category='Text';"
+        query = f"SELECT * FROM {self.table_name} where category='File' order by key_id;"
         results = self.db_connector.fetch_data(query)
 
         text_widget = tk.Text(self.view_canvas1, wrap=tk.WORD, width=80, height=20)
+
         text_widget.pack()
 
         for row in results:
             text_widget.insert(tk.END, f"Counter Value: {row[1]}\n")
             text_widget.insert(tk.END, f"Description: {row[3]}\n")
             text_widget.insert(tk.END, f"Shortcut_keys: {row[4]}\n\n")
-
 
         self.add_update_button1 = tk.Button(self.parent_frame, text="Add/Update", font=("Helvetica", 25),
                                            bg=button_color, fg=label_color, command=self.back_to_main_canvas)
@@ -193,7 +212,7 @@ class Page1:
         self.canvas1.place(relx=0.5, rely=0.5, anchor="center")
 
         self.i = 1
-        self.text_key_label = tk.Label(self.canvas1, text=f"Customize the text keys ({self.i})", font=("Arial", 12))
+        self.text_key_label = tk.Label(self.canvas1, text=f"Customize Your Chrome Windows ({self.i})", font=("Arial", 12))
         self.text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         self.plus_icon_label = tk.Label(self.canvas1, text="+", font=("Arial", 12))
