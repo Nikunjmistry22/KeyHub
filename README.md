@@ -14,7 +14,7 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
 - **Application Shortcuts:** Effortlessly launch your favorite Windows applications or third-party apps.
 - **Intuitive User Interface:** KeyHub introduces a newly designed, modern, and user-friendly interface for a delightful user experience.
 - **Customization Options:** Tailor your shortcuts to fit your unique workflow, enhancing efficiency and convenience.
-
+- **Windows Notification:** If you want to view all the shortcuts, check the Windows Notification as it displays a limited number, typically the top 5-10, for each category due to space constraints.
 ---
 
 *Unlock the full potential of your workflow with KeyHub's intuitive and newly designed user interface!*
