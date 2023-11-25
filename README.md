@@ -22,7 +22,7 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
 
 1. First, clone the repository:
     ```bash
-    git clone [KeyHub](https://github.com/Nikunjmistry22/KeyHub.git)
+    git clone https://github.com/Nikunjmistry22/KeyHub.git
     ```
 
 2. Change to the repository directory:
