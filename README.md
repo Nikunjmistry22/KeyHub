@@ -34,7 +34,10 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
     ```bash
     pip install -r requirement.txt
     ```
-4. After adding a new customized key, please close the application. Due to the use of the multiprocessing library, the new updates will only take effect after the application window is closed. Note that the old shortcut key can still be triggered even when the window is open.
+    
+4. To run the Application type on command window python keyHub.py or if any platform like pycharm/vs code just run the keyHub.py file.
+
+5. After adding a new customized key, please close the application. Due to the use of the multiprocessing library, the new updates will only take effect after the application window is closed. Note that the old shortcut key can still be triggered even when the window is open.
 
 *Unlock the full potential of your workflow with KeyHub's intuitive and newly designed user interface!*
 
