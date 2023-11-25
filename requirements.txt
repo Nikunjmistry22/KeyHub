@@ -1,0 +1,7 @@
+tkinter==8.7
+multiprocessing==4.3
+keyboard==0.13.7
+plyer==3.0.3
+sqlite3==3.42.0
+logging==0.8.4
+subprocess
