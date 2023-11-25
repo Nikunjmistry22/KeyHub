@@ -1,5 +1,5 @@
 from plyer import notification
-from databases.db_connector import SQLiteConnector
+from keyHub_test.database.db_connector import SQLiteConnector
 
 class Notification:
     def show_notification(self,category):

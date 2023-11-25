@@ -9,7 +9,7 @@ button_color = '#3498db'
 
 class Page2:
     def __init__(self, parent_frame):
-        from keyHub.databases.db_connector import SQLiteConnector
+        from keyHub_test.database.db_connector import SQLiteConnector
         self.parent_frame = parent_frame
         self.counters = {}
         self.title=tk.Label(parent_frame,text="File Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
@@ -38,9 +38,15 @@ class Page2:
         self.main_box = tk.LabelFrame(self.canvas1, text="Click anywhere in The Box", width=300, height=300)
         self.main_box.place(relx=0.5, rely=0.5, anchor="center")
         self.main_box.bind("<Button-1>", lambda event: self.open_additional_box())
+
+
         self.db_connector = SQLiteConnector("KeyHub.db")
         self.table_name = "CustomizeKeys"
+        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null unique"
 
+        self.db_connector.create_table(self.table_name, self.columns)
+
+        # Define variables to store selected values from dropdowns
         self.selected_modifier = tk.StringVar()
         self.selected_key = tk.StringVar()
 
@@ -49,6 +55,7 @@ class Page2:
         self.text_key_label.config(text=f"Customize Your Files ({self.i})")
 
     def destroy(self):
+        # Add any additional cleanup code here
         if hasattr(self, 'additional_canvas'):
             self.additional_canvas.destroy()
         if hasattr(self, 'view_canvas1'):
@@ -74,6 +81,7 @@ class Page2:
             update_confirmation = tk.messagebox.askyesno("Update Confirmation",
                                                          "Key_id already exists. Do you want to update?")
             if not update_confirmation:
+                # User chose not to update, return without updating
                 self.increment_counter()
                 self.existing_record=False
                 return
@@ -90,8 +98,9 @@ class Page2:
 
         File = tk.Button(self.additional_canvas, text="File", font=("Arial", 12),
                                            command=lambda: self.filePath())
-        File.place(relx=0.5, rely=0.3, anchor="center")
+        File.place(relx=0.5, rely=0.35, anchor="center")
 
+        # Dropdown for modifier keys (Ctrl, Alt, Shift)
         alphanumeric_keys = sorted(list(set(key.upper() for key in string.ascii_letters + string.digits)),
                                    key=lambda x: ord(x))
         modifier_value=['Ctrl','Alt','Shift']+alphanumeric_keys
@@ -117,7 +126,9 @@ class Page2:
         submit_btn.place(relx=0.6, rely=0.9, anchor="center")
 
     def filePath(self):
+        # Open a canvas with a large text widget
         self.file_path=tk.filedialog.askopenfiles(title="Select a File")
+        # print(self.file_path)
         self.file_path_comma=""
         for file in self.file_path[:-1]:
             self.file_path_comma+=file.name+','
@@ -136,6 +147,7 @@ class Page2:
             ]
 
 
+            # Check if the shortcut_key already exists
             if shortcut_text in shortcut_keys:
                 tk.messagebox.showinfo("Windows Default Shortcut Key","The ShortCut key u selected is a default Windows Shortcut Key.")
                 return
@@ -143,19 +155,24 @@ class Page2:
                 f"SELECT * FROM {self.table_name} WHERE shortcut_key=?", (shortcut_text,))
 
             if existing_record:
+                # Shortcut_key already exists, show a messagebox
                 tk.messagebox.showinfo("Shortcut Key Exists", "Shortcut Key already exists. Choose a different one.")
             else:
+                # Shortcut_key doesn't exist, proceed with update or insert
                 if self.existing_record:
                     # Key_id exists, update the existing record
                     update_query = f"UPDATE {self.table_name} SET description=?, shortcut_key=? WHERE key_id=? and category=? "
                     update_params = (description_text, shortcut_text, self.i,'File')
                     self.db_connector.execute_query(update_query, update_params)
                 else:
+                    # Key_id doesn't exist, insert a new record
                     insert_query = f"INSERT INTO {self.table_name} (key_id, category, description, shortcut_key) VALUES (?, ?, ?, ?)"
                     insert_params = (self.i, 'File', description_text, shortcut_text)
                     self.db_connector.execute_query(insert_query, insert_params)
+                # If no exception is raised, show a success message
                 tk.messagebox.showinfo("Success", "Record successfully inserted/updated.")
         except Exception as e:
+            # If an exception occurs, show an error message
             error_message = f"An error occurred: {str(e)}"
             tk.messagebox.showerror("Error", error_message)
 
@@ -165,6 +182,7 @@ class Page2:
     def view_counters(self):
         self.canvas1.destroy()
         self.view1.destroy()
+        # Create the view_canvas
         self.view_canvas1 = tk.Canvas(self.parent_frame, width=900, height=700)
         self.view_canvas1.place(relx=0.5, rely=0.5, anchor="center")
         query = f"SELECT * FROM {self.table_name} where category='File' order by key_id;"

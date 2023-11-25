@@ -1,5 +1,5 @@
 import logging
-from databases.db_connector import SQLiteConnector
+from keyHub_test.database.db_connector import SQLiteConnector
 import subprocess
 import keyboard
 from notification import Notification

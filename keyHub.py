@@ -6,7 +6,7 @@ from features.page5 import Page5
 from features.page7 import Page7
 from multiprocessing import Process,freeze_support
 import keyboard
-from databases.db_connector import SQLiteConnector
+from keyHub_test.database.db_connector import SQLiteConnector
 
 def run_automate_shortcut():
     db_connector = SQLiteConnector("KeyHub.db")
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     button_color = '#3498db'
     class keyHub:
         def __init__(self, root):
-            from databases.db_connector import SQLiteConnector
+            from keyHub_test.database.db_connector import SQLiteConnector
             self.root = root
             root.bind("<Escape>", self.stop_automate_script)
             self.root.configure(bg=background_color)

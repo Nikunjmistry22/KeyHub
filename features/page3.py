@@ -10,7 +10,7 @@ button_color = '#3498db'
 
 class Page3:
     def __init__(self, parent_frame):
-        from keyHub.databases.db_connector import SQLiteConnector
+        from keyHub_test.database.db_connector import SQLiteConnector
         self.parent_frame = parent_frame
         self.counters = {}
         self.title=tk.Label(parent_frame,text="Folder Keys",font=("Helvetica",25),bg=background_color,fg=label_color)
@@ -40,8 +40,12 @@ class Page3:
         self.main_box.place(relx=0.5, rely=0.5, anchor="center")
         self.main_box.bind("<Button-1>", lambda event: self.open_additional_box())
 
+
         self.db_connector = SQLiteConnector("KeyHub.db")
         self.table_name = "CustomizeKeys"
+        self.columns = "id INTEGER PRIMARY KEY AUTOINCREMENT, key_id INTEGER not null,category TEXT not null,description TEXT not null, shortcut_key TEXT not null unique"
+
+        self.db_connector.create_table(self.table_name, self.columns)
 
         # Define variables to store selected values from dropdowns
         self.selected_modifier = tk.StringVar()
@@ -85,7 +89,7 @@ class Page3:
         self.additional_canvas = tk.Canvas(self.parent_frame, width=300, height=300, bg="lightblue")
         self.additional_canvas.place(relx=0.5, rely=0.5, anchor="center")
 
-        text_key_label = tk.Label(self.additional_canvas, text="Folder Keys", font=("Arial", 12))
+        text_key_label = tk.Label(self.additional_canvas, text="Chrome Keys", font=("Arial", 12))
         text_key_label.place(relx=0.5, rely=0.05, anchor="center")
 
         cross_icon_label = tk.Label(self.additional_canvas, text="x", font=("Arial", 12))
@@ -95,7 +99,7 @@ class Page3:
 
         Folder = tk.Button(self.additional_canvas, text="Folder", font=("Arial", 12),
                                            command=lambda: self.folderPath())
-        Folder.place(relx=0.5, rely=0.3, anchor="center")
+        Folder.place(relx=0.5, rely=0.35, anchor="center")
 
         # Dropdown for modifier keys (Ctrl, Alt, Shift)
         modifier_dropdown = ttk.Combobox(self.additional_canvas, textvariable=self.selected_modifier,
