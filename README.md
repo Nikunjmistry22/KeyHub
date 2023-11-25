@@ -17,5 +17,23 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
 - **Windows Notification:** If you want to view all the shortcuts, check the Windows Notification as it displays a limited number, typically the top 5-10, for each category due to space constraints.
 ---
 
+
+## How to Use This
+
+1. First, clone the repository:
+    ```bash
+    git clone KeyHub
+    ```
+
+2. Change to the repository directory:
+    ```bash
+    cd KeyHub
+    ```
+
+3. Install the required packages using pip:
+    ```bash
+    pip install -r requirement.txt
+    ```
+
 *Unlock the full potential of your workflow with KeyHub's intuitive and newly designed user interface!*
 
