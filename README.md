@@ -39,5 +39,6 @@ KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive
 
 5. After adding a new customized key, please close the application. Due to the use of the multiprocessing library, the new updates will only take effect after the application window is closed. Note that the old shortcut key can still be triggered even when the window is open.
 
+Demo Link: https://youtu.be/WX6KJ64ko1A?si=3iUBlh9JRCY7semG <br>
 *Unlock the full potential of your workflow with KeyHub's intuitive and newly designed user interface!*
 
