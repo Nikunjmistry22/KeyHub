@@ -4,12 +4,11 @@ Welcome to KeyHub, where customization meets simplicity! This powerful desktop a
 
 ## Overview
 
-KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive user interface. Customize your shortcut keys to streamline tasks such as pasting specific text or quickly opening files/folders/ Windows apps, or third-party applications.
+KeyHub is built with the Tkinter GUI toolkit, ensuring a seamless and responsive user interface. Customize your shortcut keys to streamline tasks such as  quickly opening files/folders/ Windows apps.
 
 ## Features
 
 - **Chrome Customization:** Create shortcut keys to streamline your Chrome experience, allowing each window to have either a single or multiple tabs.
-- **Text Snippets:** Create shortcut keys to easily paste specific text snippets you use regularly.
 - **File and Folder Shortcuts:** Open files and folders with a single keystroke for maximum productivity.
 - **Application Shortcuts:** Effortlessly launch your favorite Windows applications or third-party apps.
 - **Intuitive User Interface:** KeyHub introduces a newly designed, modern, and user-friendly interface for a delightful user experience.
